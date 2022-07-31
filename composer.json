@@ -1,0 +1,12 @@
+{
+    "name": "yfktn/tntsastrawi",
+    "type": "october-plugin",
+    "description": "Indonesian Sastrawi and TNT Search Plugin For OctoberCMS..",
+    "license": "MIT",
+    "homepage": "https://gitlab.com/yfktn/tntsastrawi-plugin",
+    "require": {
+        "php": ">=7.2.9",
+        "teamtnt/tntsearch": "^2.9.0",
+        "sastrawi/sastrawi": "^1"
+    }
+}
