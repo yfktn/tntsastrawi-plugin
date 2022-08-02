@@ -1,6 +1,7 @@
 <?php namespace Yfktn\TntSastrawi;
 
 use Backend;
+use Sastrawi\Stemmer\StemmerFactory;
 use System\Classes\PluginBase;
 
 /**
@@ -30,7 +31,11 @@ class Plugin extends PluginBase
      */
     public function register()
     {
-
+        // register di sini supaya tidak silalu diinisialisasi oleh stem
+        \App::singleton('sastrawiStemmerFactory', function() {
+            return (new StemmerFactory())->createStemmer();
+        });
+        $this->registerConsoleCommand('yfktn.tntsastrawi', \Yfktn\TntSastrawi\Console\IndexerCommando::class);
     }
 
     /**
@@ -91,6 +96,54 @@ class Plugin extends PluginBase
                 'permissions' => ['yfktn.tntsastrawi.*'],
                 'order'       => 500,
             ],
+        ];
+    }
+
+    public function registerMarkupTags()
+    {
+        return [
+            'functions' => [
+                'getTulisanRelated' => function($punyaSlugIni, $keyword, $kontennya, $setelahTagPKe = 1, $cntRecommended = 1) {
+                    $tnt = new \TeamTNT\TNTSearch\TNTSearch();
+                    $tnt->loadConfig(config("yfktn.tntsastrawi::source"));
+                    $tnt->selectIndex('Yfktn.Tulisan');
+                    $keywords = $keyword ; //. ' ' . \Html::strip($kontennya);
+                    $res = $tnt->search($keywords, $cntRecommended + 1);
+                    $orderByRaw = 'FIELD(id, ' . implode(",", $res['ids']) . ')';
+                    trace_log($keyword, $res, $cntRecommended, $orderByRaw);
+                    $hasil = \Yfktn\Tulisan\Models\Tulisan//::with(['gambar_header', 'kategori'])
+                        ::yangSudahDitampilkan()
+                        ->whereIn('id', $res['ids'])
+                        ->orderByRaw($orderByRaw)
+                        ->where('slug', '<>', $punyaSlugIni) // jangan double tampilkan!
+                        ->listDiFrontEnd([
+                            // 'page' => $this->variable['halamanAktif'],
+                            'jumlahItemPerHalaman' => $cntRecommended,
+                            'order' => [
+                                'tgl_tampil' => 'DESC'
+                            ]
+                        ]);
+                    $retValue = [];
+                    $retValue[3] = $hasil->count();
+                    if($hasil->count() > 0) {
+                        $the1stParagraphEnd = stripos($kontennya, '</p>');
+                        if($the1stParagraphEnd === false) {
+                            // tambahkan di bagian akhir
+                            $retValue[0] = $kontennya;
+                            $retValue[2] = "";
+                        } else {
+                            $retValue[0] = substr($kontennya, 0, $the1stParagraphEnd + 4);
+                            $retValue[2] = substr($kontennya, $the1stParagraphEnd + 4);
+                        }
+                        $retValue[1] = $hasil;
+                    } else {
+                        $retValue[0] = $kontennya;
+                        $retValue[2] = "";
+                        $retValue[1] = false;
+                    }
+                    return $retValue;
+                }
+            ]
         ];
     }
 }
