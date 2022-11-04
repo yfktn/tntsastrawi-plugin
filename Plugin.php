@@ -110,7 +110,7 @@ class Plugin extends PluginBase
                     $keywords = $keyword ; //. ' ' . \Html::strip($kontennya);
                     $res = $tnt->search($keywords, $cntRecommended + 1);
                     $orderByRaw = 'FIELD(id, ' . implode(",", $res['ids']) . ')';
-                    trace_log($keyword, $res, $cntRecommended, $orderByRaw);
+                    // trace_log($keyword, $res, $cntRecommended, $orderByRaw);
                     $hasil = \Yfktn\Tulisan\Models\Tulisan//::with(['gambar_header', 'kategori'])
                         ::yangSudahDitampilkan()
                         ->whereIn('id', $res['ids'])
