@@ -6,7 +6,7 @@
     "homepage": "https://gitlab.com/yfktn/tntsastrawi-plugin",
     "require": {
         "php": ">=7.2.9",
-        "teamtnt/tntsearch": "^2.9.0",
+        "teamtnt/tntsearch": "^4.2.0",
         "sastrawi/sastrawi": "^1"
     }
 }
